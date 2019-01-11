@@ -1,4 +1,4 @@
-dirutility==0.4.0
+dirutility==0.4.2
 looptools==1.1.1
 PySimpleGUI==3.21.0
 tqdm==4.29.0
