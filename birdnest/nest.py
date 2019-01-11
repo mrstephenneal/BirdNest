@@ -3,12 +3,12 @@ import os
 import shutil
 from dirutility import DirPaths, ZipBackup
 from tqdm import tqdm
+from PySimpleGUI import PySimpleGUI as sg
 
 
 class Nest:
     def __init__(self, root, separator='_', limit=1, file_types=None, zip_backup=False):
         """
-
         :param root: Root directory of to-be nested files
         :param separator: Character separating meaningful file name segments
         :param file_types:
@@ -20,7 +20,7 @@ class Nest:
 
         # Create a zip backup to revert back to
         if zip_backup:
-            ZipBackup(root).backup()
+            ZipBackup(root, overwrite=False).backup()
 
         # New directories to create
         self.new_dirs = set([])
@@ -33,6 +33,12 @@ class Nest:
         :return: absolute file path
         """
         return os.path.join(self._root, relative)
+
+    def _create_directory(self, directory):
+        """Create a directory if it does not exist."""
+        directory_path = self._abs_path(directory)
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
 
     def parse_directory(self):
         """
@@ -52,7 +58,7 @@ class Nest:
 
             # Get destination directory by splitting on separator and add to new_dirs
             dst_directory = basename.split(self.separator, 1)[0]
-            self.new_dirs.add(dst_directory)
+            self._create_directory(dst_directory)
 
             # Add file_path and destination to nest dictionary
             nest[file_path] = dst_directory
@@ -60,20 +66,14 @@ class Nest:
 
     def nest(self):
         """Move files from their original source destination to their new directory."""
-        # Make all of the needed directories
-        for directory in self.new_dirs:
-            directory_path = self._abs_path(directory)
-            if not os.path.exists(directory_path):
-                os.makedirs(directory_path)
-
         # Move files
-        nest = self.map_results()
+        nest = self.map_results().items()
         for file_path, directory in tqdm(nest, 'Moving files to destination folders', len(nest)):
-            shutil.move(str(file_path), self._abs_path(directory))
+            shutil.move(str(file_path), self._abs_path(os.path.join(directory, os.path.basename(file_path))))
 
 
 def main():
-    root = '/Volumes/Temp'
+    root = sg.PopupGetFolder('Select a root directory')
     Nest(root, zip_backup=True).nest()
 
 
