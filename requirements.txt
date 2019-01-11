@@ -1,0 +1,3 @@
+dirutility==0.4.0
+looptools==1.1.1
+tqdm==4.29.0
